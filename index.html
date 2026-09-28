@@ -33,71 +33,51 @@
   </script>
 
   <style>
-    /* Custom Scrollbar Hide for Clean Mobile Feel */
-    .no-scrollbar::-webkit-scrollbar {
-      display: none;
-    }
-    .no-scrollbar {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
-
-    /* Active Tab Glow / Styling */
-    .tab-active {
-      color: #C8102E;
-      font-weight: 700;
-    }
-
-    .modal-backdrop {
-      background-color: rgba(15, 23, 42, 0.6);
-      backdrop-filter: blur(4px);
-    }
-
-    /* Dynamic Slide Animation */
-    @keyframes slideUp {
-      from { transform: translateY(100%); }
-      to { transform: translateY(0); }
-    }
-
-    .animate-slide-up {
-      animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .modal-backdrop { background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); }
+    @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .animate-slide-up { animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
   </style>
 </head>
 <body class="bg-gray-100 text-slate-800 antialiased selection:bg-brand-red selection:text-white pb-20">
 
-  <!-- APP CONTAINER (Mobile Frame Viewport) -->
+  <!-- Toast Notification Container -->
+  <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 hidden transition-all duration-300 transform -translate-y-2 opacity-0">
+    <div class="bg-slate-900 text-white text-xs font-bold px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 border border-slate-700/50">
+      <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
+      <span id="toast-message">카카오톡 연동 메세지가 클립보드에 복사되었습니다.</span>
+    </div>
+  </div>
+
+  <!-- APP CONTAINER -->
   <div id="app" class="max-w-md mx-auto bg-white min-h-screen shadow-xl relative flex flex-col justify-between overflow-x-hidden">
 
     <!-- ==================== HEADER ==================== -->
-    <header class="sticky top-0 z-30 bg-white border-b border-gray-100 shadow-sm px-4 py-3 flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <div class="w-8 h-8 rounded-lg bg-brand-red flex items-center justify-center text-white font-extrabold text-lg tracking-tighter shadow-md">
+    <header class="sticky top-0 z-30 bg-white border-b border-gray-100 shadow-xs px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-2 cursor-pointer" onclick="switchTab('feed')">
+        <div class="w-8 h-8 rounded-lg bg-brand-red flex items-center justify-center text-white font-extrabold text-lg tracking-tighter shadow-sm">
           VS
         </div>
         <div>
           <h1 class="font-extrabold text-gray-900 leading-tight text-base tracking-tight flex items-center gap-1">
-            CrewSwap <span class="bg-red-100 text-brand-red text-[10px] font-bold px-1.5 py-0.5 rounded-full">VS209</span>
+            CrewSwap <span class="bg-red-100 text-brand-red text-[10px] font-bold px-1.5 py-0.5 rounded-full">B787</span>
           </h1>
-          <p class="text-[11px] text-gray-500 font-medium">버진애틀랜틱 K-SWAP
-            
-          </p>
+          <p class="text-[11px] text-gray-500 font-medium">버진애틀랜틱 K-SWAP</p>
         </div>
       </div>
 
       <div class="flex items-center gap-2">
-        <button onclick="openNotificationModal()" class="relative p-2 text-gray-600 hover:text-brand-red hover:bg-gray-50 rounded-full transition-colors">
+        <button onclick="triggerNotificationAlert()" class="relative p-2 text-gray-600 hover:text-brand-red hover:bg-gray-50 rounded-full transition-colors">
           <i data-lucide="bell" class="w-5 h-5"></i>
           <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-brand-red rounded-full ring-2 ring-white"></span>
         </button>
-        <button onclick="switchTab('profile')" class="w-8 h-8 rounded-full border-2 border-brand-red/30 overflow-hidden focus:outline-none ring-2 ring-transparent hover:ring-brand-red/50 transition-all">
-          <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150" alt="Profile" class="w-full h-full object-cover">
+        <button onclick="switchTab('profile')" class="w-8 h-8 rounded-full border-2 border-brand-red/30 overflow-hidden focus:outline-none hover:ring-2 hover:ring-brand-red/50 transition-all">
+          <img id="header-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150" alt="Profile" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/150x150/C8102E/ffffff?text=VS'">
         </button>
       </div>
     </header>
 
-
-    <!-- ==================== MAIN CONTENT AREA ==================== -->
     <main id="main-content" class="flex-1 px-4 py-4 overflow-y-auto">
 
       <!-- ================= 1. SWAP FEED TAB ================= -->
@@ -108,13 +88,13 @@
           <div class="relative">
             <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
             <input type="text" id="feed-search" placeholder="비행편(VS209 등), 날짜 또는 노선 검색..." 
-                   onkeyup="filterFeedPosts()"
-                   class="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-red/30 focus:border-brand-red transition-all">
+                   onkeyup="renderPosts()"
+                   class="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-red/30 focus:border-brand-red transition-all">
           </div>
 
-          <!-- Trade Category Filters (DAYS OFF / DUTY / SBY) -->
+          <!-- Trade Category Filters -->
           <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
-            <button onclick="setCategoryFilter('ALL')" class="category-chip active-chip px-3 py-1.5 rounded-full text-xs font-semibold bg-brand-red text-white transition-all shadow-xs" data-category="ALL">
+            <button onclick="setCategoryFilter('ALL')" class="category-chip px-3 py-1.5 rounded-full text-xs font-semibold bg-brand-red text-white transition-all shadow-xs" data-category="ALL">
               전체
             </button>
             <button onclick="setCategoryFilter('DAYS OFF')" class="category-chip px-3 py-1.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 hover:bg-gray-200 transition-all" data-category="DAYS OFF">
@@ -130,11 +110,11 @@
         </div>
 
         <!-- Quick Post CTA Banner -->
-        <div class="bg-gradient-to-r from-brand-red to-brand-purple rounded-2xl p-4 text-white shadow-md relative overflow-hidden">
+        <div class="bg-gradient-to-r from-brand-red via-brand-darkRed to-brand-purple rounded-2xl p-4 text-white shadow-md relative overflow-hidden">
           <div class="relative z-10 space-y-1">
-            <span class="bg-white/20 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Quick Trade</span>
+            <span class="bg-white/20 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">B787 Only</span>
             <h2 class="text-base font-bold">스왑 요청 등록하기</h2>
-            <p class="text-xs text-white/80">내 듀티나 OFF 날짜를 등록하고 동료와 빠르게 스왑하세요.</p>
+            <p class="text-xs text-white/80">카카오톡 양식 자동 생성 및 eCrew 연결</p>
             <button onclick="openPostModal()" class="mt-3 bg-white text-brand-red hover:bg-gray-50 text-xs font-bold px-3.5 py-2 rounded-lg shadow-sm transition-all flex items-center gap-1">
               <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> 스왑 글 작성하기
             </button>
@@ -144,228 +124,217 @@
 
         <!-- Posts Counter Header -->
         <div class="flex items-center justify-between text-xs text-gray-500 pt-1">
-          <span>실시간 등록 스왑 요청 (<span id="post-count" class="font-bold text-brand-red">0</span>건)</span>
-          <span class="text-[11px] text-gray-400">직급: <strong class="text-gray-700">CC 통일</strong></span>
+          <span>실시간 스왑 요청 (<span id="post-count" class="font-bold text-brand-red">0</span>건)</span>
+          <span class="text-[11px] text-gray-400">기종: <strong class="text-brand-red">B787</strong> | 직급: <strong class="text-gray-700">CC</strong></span>
         </div>
 
         <!-- Feed Posts List Container -->
         <div id="posts-container" class="space-y-3">
-          <!-- Dynamically Populated by JavaScript -->
+          <!-- Dynamically populated via JS -->
         </div>
 
       </section>
-
 
       <!-- ================= 2. MY SCHEDULE TAB ================= -->
       <section id="tab-schedule" class="tab-page hidden space-y-4">
         <div class="flex items-center justify-between">
           <div>
             <h2 class="text-lg font-extrabold text-gray-900">내 비행 및 스케줄</h2>
-            <p class="text-xs text-gray-500">2026년 10월 듀티 표</p>
+            <p class="text-xs text-gray-500">2026년 10월 듀티 표 (B787)</p>
           </div>
           <span class="bg-brand-red/10 text-brand-red text-xs font-bold px-2.5 py-1 rounded-full">
-            직급: CC
+            직급: CC | B787
           </span>
         </div>
 
-        <!-- Monthly Schedule Calendar Cards -->
         <div class="space-y-3" id="schedule-list">
-          <!-- Schedule Item 1 -->
-          <div class="bg-white border border-gray-200 rounded-xl p-3.5 shadow-2xs hover:border-brand-red/40 transition-all">
+          <!-- Item 1 -->
+          <div class="bg-white border border-gray-200 rounded-xl p-3.5 shadow-xs hover:border-brand-red/40 transition-all">
             <div class="flex justify-between items-start mb-2">
               <div class="flex items-center gap-2">
-                <span class="text-xs font-bold text-white bg-slate-800 px-2 py-0.5 rounded">10.12 (월)</span>
-                <span class="text-xs font-bold text-brand-red bg-red-50 px-2 py-0.5 rounded border border-red-100">VS209</span>
+                <span class="text-xs font-bold text-white bg-slate-800 px-2 py-0.5 rounded">10.12 ~ 10.14</span>
+                <span class="text-xs font-bold text-brand-red bg-red-50 px-2 py-0.5 rounded border border-red-100">VS209 / VS210</span>
               </div>
-              <span class="text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">DUTY</span>
+              <span class="text-[11px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">DUTY</span>
             </div>
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-sm font-extrabold text-gray-900">ICN ➔ LHR (VS209)</p>
-                <p class="text-xs text-gray-500">출발: 13:20 | 도착: 18:50</p>
+                <p class="text-sm font-extrabold text-gray-900">ICN ➔ LHR ➔ ICN</p>
+                <p class="text-xs text-gray-500">출발: 10/12 13:20 | 도착: 10/14 16:50</p>
               </div>
-              <button onclick="quickPostSwap('VS209', 'ICN-LHR', '2026.10.12', 'DUTY')" class="bg-gray-100 hover:bg-brand-red hover:text-white text-gray-700 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors">
-                스왑 요청
+              <button onclick="copyAndOpenKakao('VS209/VS210', 'ICN-LHR', '2026.10.12', '2026.10.14', 'DAYS OFF')" class="bg-yellow-400 hover:bg-yellow-500 text-amber-950 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 shadow-xs">
+                <i data-lucide="copy" class="w-3.5 h-3.5"></i> 카톡 복사
               </button>
             </div>
           </div>
 
-          <!-- Schedule Item 2 -->
-          <div class="bg-white border border-gray-200 rounded-xl p-3.5 shadow-2xs hover:border-brand-red/40 transition-all">
+          <!-- Item 2 -->
+          <div class="bg-white border border-gray-200 rounded-xl p-3.5 shadow-xs hover:border-brand-red/40 transition-all">
             <div class="flex justify-between items-start mb-2">
               <div class="flex items-center gap-2">
-                <span class="text-xs font-bold text-white bg-slate-800 px-2 py-0.5 rounded">10.15 (목)</span>
-                <span class="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">OFF</span>
+                <span class="text-xs font-bold text-white bg-slate-800 px-2 py-0.5 rounded">10.18 ~ 10.20</span>
+                <span class="text-xs font-bold text-brand-red bg-red-50 px-2 py-0.5 rounded border border-red-100">VS209 / VS210</span>
               </div>
-              <span class="text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">DAYS OFF</span>
+              <span class="text-[11px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">DUTY</span>
             </div>
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-sm font-extrabold text-gray-900">DAYS OFF (휴무일)</p>
-                <p class="text-xs text-gray-500">인천/서울 지정 휴무</p>
+                <p class="text-sm font-extrabold text-gray-900">ICN ➔ LHR ➔ ICN</p>
+                <p class="text-xs text-gray-500">출발: 10/18 13:20 | 도착: 10/20 16:50</p>
               </div>
-              <button onclick="quickPostSwap('DAYS OFF', 'DAYS OFF (2026.10.15)', '2026.10.15', 'DAYS OFF')" class="bg-gray-100 hover:bg-emerald-600 hover:text-white text-gray-700 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors">
-                OFF 스왑
+              <button onclick="copyAndOpenKakao('VS209/VS210', 'ICN-LHR', '2026.10.18', '2026.10.20', 'ANY DUTY')" class="bg-yellow-400 hover:bg-yellow-500 text-amber-950 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 shadow-xs">
+                <i data-lucide="copy" class="w-3.5 h-3.5"></i> 카톡 복사
               </button>
             </div>
           </div>
 
-          <!-- Schedule Item 3 -->
-          <div class="bg-white border border-gray-200 rounded-xl p-3.5 shadow-2xs hover:border-brand-red/40 transition-all">
+          <!-- Item 3 -->
+          <div class="bg-white border border-gray-200 rounded-xl p-3.5 shadow-xs hover:border-brand-red/40 transition-all">
             <div class="flex justify-between items-start mb-2">
               <div class="flex items-center gap-2">
-                <span class="text-xs font-bold text-white bg-slate-800 px-2 py-0.5 rounded">10.18 (일)</span>
-                <span class="text-xs font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">SBY</span>
+                <span class="text-xs font-bold text-white bg-slate-800 px-2 py-0.5 rounded">10.25</span>
+                <span class="text-xs font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-100">SBY-ICN</span>
               </div>
               <span class="text-[11px] font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded">STANDBY</span>
             </div>
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-sm font-extrabold text-gray-900">Airport Standby (SBY)</p>
-                <p class="text-xs text-gray-500">대기 시간: 06:00 - 14:00 (ICN)</p>
+                <p class="text-sm font-extrabold text-gray-900">Incheon Standby</p>
+                <p class="text-xs text-gray-500">대기 시간: 08:00 ~ 16:00</p>
               </div>
-              <button onclick="quickPostSwap('SBY', 'Airport Standby', '2026.10.18', 'SBY')" class="bg-gray-100 hover:bg-amber-600 hover:text-white text-gray-700 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors">
-                SBY 스왑
-              </button>
-            </div>
-          </div>
-
-          <!-- Schedule Item 4 -->
-          <div class="bg-white border border-gray-200 rounded-xl p-3.5 shadow-2xs hover:border-brand-red/40 transition-all">
-            <div class="flex justify-between items-start mb-2">
-              <div class="flex items-center gap-2">
-                <span class="text-xs font-bold text-white bg-slate-800 px-2 py-0.5 rounded">10.22 (목)</span>
-                <span class="text-xs font-bold text-brand-red bg-red-50 px-2 py-0.5 rounded border border-red-100">VS209</span>
-              </div>
-              <span class="text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">DUTY</span>
-            </div>
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-sm font-extrabold text-gray-900">ICN ➔ LHR (VS209)</p>
-                <p class="text-xs text-gray-500">출발: 13:20 | 도착: 18:50</p>
-              </div>
-              <button onclick="quickPostSwap('VS209', 'ICN-LHR', '2026.10.22', 'DUTY')" class="bg-gray-100 hover:bg-brand-red hover:text-white text-gray-700 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors">
-                스왑 요청
+              <button onclick="copyAndOpenKakao('SBY-ICN', 'Standby', '2026.10.25', '2026.10.25', 'DAYS OFF')" class="bg-yellow-400 hover:bg-yellow-500 text-amber-950 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 shadow-xs">
+                <i data-lucide="copy" class="w-3.5 h-3.5"></i> 카톡 복사
               </button>
             </div>
           </div>
         </div>
       </section>
 
-
       <!-- ================= 3. CHAT TAB ================= -->
-      <section id="tab-chat" class="tab-page hidden space-y-3">
-        <div class="flex justify-between items-center mb-1">
-          <h2 class="text-lg font-extrabold text-gray-900">메시지 & 스왑 협의</h2>
-          <span class="text-xs text-gray-500">직급: CC</span>
+      <section id="tab-chat" class="tab-page hidden space-y-4">
+        <div>
+          <h2 class="text-lg font-extrabold text-gray-900">스왑 문의 목록</h2>
+          <p class="text-xs text-gray-500">개별 스왑 관련 대화 및 교환 협의</p>
         </div>
 
-        <div id="chat-list" class="space-y-2">
+        <div class="space-y-2">
           <!-- Chat Item 1 -->
-          <div onclick="openChatDetail('김민지 승무원 (CC)', 'VS209 스왑 문의 관련 대화입니다.')" 
-               class="flex items-center gap-3 p-3 bg-white border border-gray-100 rounded-xl hover:bg-gray-50 transition-all cursor-pointer shadow-2xs">
-            <div class="relative">
-              <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=120" alt="Avatar" class="w-12 h-12 rounded-full object-cover">
-              <span class="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full"></span>
+          <div onclick="openChatDetail('김민지 승무원', 'VS209 10/15 비행 건으로 문의드립니다!')" class="bg-white border border-gray-200 rounded-xl p-3 shadow-xs hover:border-brand-red/40 transition-all cursor-pointer flex items-center gap-3">
+            <div class="relative w-10 h-10 shrink-0">
+              <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=150" class="w-full h-full rounded-full object-cover border border-gray-200">
+              <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full ring-2 ring-white"></span>
             </div>
             <div class="flex-1 min-w-0">
-              <div class="flex justify-between items-baseline">
-                <h3 class="text-sm font-bold text-gray-900 truncate">김민지 승무원 <span class="text-xs font-normal text-gray-500">(CC)</span></h3>
-                <span class="text-[10px] text-gray-400">14:32</span>
+              <div class="flex justify-between items-baseline mb-0.5">
+                <h3 class="text-xs font-bold text-gray-900 truncate">김민지 승무원 (CC)</h3>
+                <span class="text-[10px] text-gray-400">오후 2:15</span>
               </div>
-              <p class="text-xs text-gray-600 truncate mt-0.5">안녕하세요! 10월 15일 DAYS OFF 스왑 건으로 메시지 드립니다.</p>
+              <p class="text-xs text-gray-600 truncate">VS209 10/15 비행 건으로 문의드립니다!</p>
             </div>
-            <span class="w-5 h-5 rounded-full bg-brand-red text-white text-[10px] font-bold flex items-center justify-center">1</span>
           </div>
 
           <!-- Chat Item 2 -->
-          <div onclick="openChatDetail('Sarah Jenkins (CC)', 'VS209 London Duty Trade')" 
-               class="flex items-center gap-3 p-3 bg-white border border-gray-100 rounded-xl hover:bg-gray-50 transition-all cursor-pointer shadow-2xs">
-            <div class="relative">
-              <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=120" alt="Avatar" class="w-12 h-12 rounded-full object-cover">
-              <span class="absolute bottom-0 right-0 w-3 h-3 bg-gray-300 border-2 border-white rounded-full"></span>
+          <div onclick="openChatDetail('박준서 승무원', 'SBY 대기 관련 시간 변경 가능한가요?')" class="bg-white border border-gray-200 rounded-xl p-3 shadow-xs hover:border-brand-red/40 transition-all cursor-pointer flex items-center gap-3">
+            <div class="relative w-10 h-10 shrink-0">
+              <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150" class="w-full h-full rounded-full object-cover border border-gray-200">
             </div>
             <div class="flex-1 min-w-0">
-              <div class="flex justify-between items-baseline">
-                <h3 class="text-sm font-bold text-gray-900 truncate">Sarah Jenkins <span class="text-xs font-normal text-gray-500">(CC)</span></h3>
+              <div class="flex justify-between items-baseline mb-0.5">
+                <h3 class="text-xs font-bold text-gray-900 truncate">박준서 승무원 (CC)</h3>
                 <span class="text-[10px] text-gray-400">어제</span>
               </div>
-              <p class="text-xs text-gray-500 truncate mt-0.5">Is VS209 flight on Oct 12 still available for trade?</p>
+              <p class="text-xs text-gray-600 truncate">SBY 대기 관련 시간 변경 가능한가요?</p>
             </div>
           </div>
         </div>
       </section>
 
-
       <!-- ================= 4. PROFILE TAB ================= -->
       <section id="tab-profile" class="tab-page hidden space-y-4">
-        <!-- Profile Header Card -->
-        <div class="bg-white border border-gray-200 rounded-2xl p-4 text-center shadow-2xs space-y-3">
+        <div class="bg-white border border-gray-200 rounded-2xl p-4 text-center shadow-xs space-y-3">
           <div class="relative w-20 h-20 mx-auto">
-            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200" alt="Profile" class="w-full h-full rounded-full object-cover border-2 border-brand-red p-0.5">
-            <span class="absolute bottom-1 right-1 bg-brand-red text-white p-1 rounded-full text-xs">
-              <i data-lucide="check" class="w-3 h-3"></i>
-            </span>
+            <img id="profile-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200" alt="Profile" class="w-full h-full rounded-full object-cover border-2 border-brand-red p-0.5" onerror="this.src='https://placehold.co/200x200/C8102E/ffffff?text=VS'">
           </div>
 
           <div>
-            <h2 class="text-base font-extrabold text-gray-900">이지원 승무원</h2>
-            <p class="text-xs text-gray-500 font-medium">Virgin Atlantic Airways • Cabin Crew</p>
+            <h2 id="profile-name-display" class="text-base font-extrabold text-gray-900">이지원 승무원</h2>
+            <p id="profile-info-display" class="text-xs text-gray-500 font-medium">Virgin Atlantic Airways • Cabin Crew (B787)</p>
+            <p id="profile-staffid-display" class="text-xs text-brand-red font-bold mt-1">사번: 123456</p>
           </div>
 
-          <!-- User Quick Stats Badges -->
-          <div class="grid grid-cols-3 gap-2 pt-2 border-t border-gray-100 text-center">
-            <div class="p-2 bg-gray-50 rounded-xl">
-              <span class="block text-[10px] text-gray-400 font-medium">직급 (Rank)</span>
-              <span class="text-sm font-black text-brand-red">CC</span>
-            </div>
-            <div class="p-2 bg-gray-50 rounded-xl">
-              <span class="block text-[10px] text-gray-400 font-medium">주요 노선</span>
-              <span class="text-sm font-black text-slate-800">VS209</span>
-            </div>
-            <div class="p-2 bg-gray-50 rounded-xl">
-              <span class="block text-[10px] text-gray-400 font-medium">성공 스왑</span>
-              <span class="text-sm font-black text-emerald-600">12회</span>
-            </div>
-          </div>
+          <button onclick="handleLogout()" class="w-full py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition-all">
+            로그아웃
+          </button>
         </div>
 
-        <!-- Profile Settings Links -->
-        <div class="bg-white border border-gray-200 rounded-2xl overflow-hidden divide-y divide-gray-100 shadow-2xs text-xs font-semibold text-gray-700">
-          <button class="w-full px-4 py-3.5 flex items-center justify-between hover:bg-gray-50 transition-colors">
-            <div class="flex items-center gap-2.5">
-              <i data-lucide="user-check" class="w-4 h-4 text-brand-red"></i>
-              <span>승무원 인증 상태 (Certified)</span>
+        <!-- Official Link Box -->
+        <div class="bg-gradient-to-r from-red-50 to-white border border-red-100 rounded-2xl p-3.5 shadow-xs flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-brand-red/10 text-brand-red flex items-center justify-center font-bold">
+              <i data-lucide="external-link" class="w-5 h-5"></i>
             </div>
-            <span class="text-[11px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md font-bold">완료</span>
-          </button>
-          
-          <button class="w-full px-4 py-3.5 flex items-center justify-between hover:bg-gray-50 transition-colors">
-            <div class="flex items-center gap-2.5">
-              <i data-lucide="calendar" class="w-4 h-4 text-gray-500"></i>
-              <span>내 스왑 요청 내역 관리</span>
+            <div>
+              <h3 class="text-xs font-extrabold text-gray-900">회사 공식 eCrew 시스템</h3>
+              <p class="text-[11px] text-gray-500">스왑 최종 승인 신청 링크</p>
             </div>
-            <i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i>
-          </button>
-
-          <button class="w-full px-4 py-3.5 flex items-center justify-between hover:bg-gray-50 transition-colors">
-            <div class="flex items-center gap-2.5">
-              <i data-lucide="bell" class="w-4 h-4 text-gray-500"></i>
-              <span>알림 및 스왑 알림 설정</span>
-            </div>
-            <i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i>
-          </button>
+          </div>
+          <a href="https://vs-crew.aims.aero/eCrew/Dashboard" target="_blank" rel="noopener noreferrer" 
+             class="bg-brand-red hover:bg-brand-darkRed text-white text-xs font-bold px-3 py-2 rounded-xl transition-all shadow-xs flex items-center gap-1">
+            이동 <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+          </a>
         </div>
       </section>
 
     </main>
 
+    <!-- ==================== AUTH / LOGIN MODAL ==================== -->
+    <div id="login-modal" class="fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
+      <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden p-6 space-y-4 animate-slide-up">
+        
+        <div class="text-center space-y-1">
+          <div class="w-12 h-12 rounded-2xl bg-brand-red text-white flex items-center justify-center font-black text-2xl mx-auto shadow-md">
+            VS
+          </div>
+          <h2 class="text-lg font-extrabold text-gray-900">Virgin Atlantic CrewSwap</h2>
+          <p class="text-xs text-gray-500">승무원 사번 인증 및 로그인</p>
+        </div>
+
+        <form id="login-form" onsubmit="handleLoginSubmit(event)" class="space-y-3 pt-2">
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">이름 *</label>
+            <input type="text" id="login-name" value="이지원" placeholder="예: 이지원" required
+                   class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-brand-red/30 focus:border-brand-red">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">사번 6자리 (Staff ID) *</label>
+            <input type="text" id="login-staff-id" maxlength="6" value="123456" placeholder="숫자 6자리 입력" required
+                   class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-brand-red/30 focus:border-brand-red">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">비밀번호 *</label>
+            <input type="password" id="login-password" value="123456" placeholder="eCrew 비밀번호" required
+                   class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-brand-red/30 focus:border-brand-red">
+          </div>
+
+          <div class="bg-red-50 border border-red-100 rounded-xl p-2.5 text-[11px] text-brand-darkRed flex items-start gap-1.5">
+            <i data-lucide="shield-check" class="w-4 h-4 shrink-0 text-brand-red mt-0.5"></i>
+            <span>B787 기종 운항 승무원 전용 인증입니다.</span>
+          </div>
+
+          <button type="submit" class="w-full py-3 bg-brand-red hover:bg-brand-darkRed text-white font-extrabold text-xs rounded-xl shadow-md transition-all">
+            사번 인증 및 시작하기
+          </button>
+        </form>
+
+      </div>
+    </div>
 
     <!-- ==================== POST CREATE MODAL ==================== -->
     <div id="post-modal" class="fixed inset-0 z-50 modal-backdrop hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
       <div class="bg-white w-full max-w-md rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden animate-slide-up max-h-[90vh] flex flex-col">
         
-        <!-- Modal Header -->
         <div class="px-4 py-3.5 border-b border-gray-100 flex items-center justify-between bg-gray-50">
           <h3 class="font-bold text-gray-900 text-sm flex items-center gap-1.5">
             <i data-lucide="plus-circle" class="w-4 h-4 text-brand-red"></i>
@@ -376,27 +345,24 @@
           </button>
         </div>
 
-        <!-- Modal Form Content -->
         <form id="swap-form" onsubmit="handlePostSubmit(event)" class="p-4 space-y-3.5 overflow-y-auto">
-          
-          <!-- Category Selector (DAYS OFF / DUTY / SBY) -->
           <div>
             <label class="block text-xs font-bold text-gray-700 mb-1">스왑 유형 선택 *</label>
             <div class="grid grid-cols-3 gap-2">
               <label class="cursor-pointer">
-                <input type="radio" name="postCategory" value="DAYS OFF" class="peer sr-only" onchange="toggleFormFields('DAYS OFF')">
+                <input type="radio" name="postCategory" value="DAYS OFF" onchange="toggleFormFields('DAYS OFF')" class="peer sr-only">
                 <div class="py-2 text-center text-xs font-bold rounded-xl border border-gray-200 peer-checked:border-brand-red peer-checked:bg-red-50 peer-checked:text-brand-red transition-all">
                   DAYS OFF
                 </div>
               </label>
               <label class="cursor-pointer">
-                <input type="radio" name="postCategory" value="DUTY" checked class="peer sr-only" onchange="toggleFormFields('DUTY')">
+                <input type="radio" name="postCategory" value="DUTY" checked onchange="toggleFormFields('DUTY')" class="peer sr-only">
                 <div class="py-2 text-center text-xs font-bold rounded-xl border border-gray-200 peer-checked:border-brand-red peer-checked:bg-red-50 peer-checked:text-brand-red transition-all">
                   DUTY (비행)
                 </div>
               </label>
               <label class="cursor-pointer">
-                <input type="radio" name="postCategory" value="SBY" class="peer sr-only" onchange="toggleFormFields('SBY')">
+                <input type="radio" name="postCategory" value="SBY" onchange="toggleFormFields('SBY')" class="peer sr-only">
                 <div class="py-2 text-center text-xs font-bold rounded-xl border border-gray-200 peer-checked:border-brand-red peer-checked:bg-red-50 peer-checked:text-brand-red transition-all">
                   SBY (대기)
                 </div>
@@ -404,45 +370,56 @@
             </div>
           </div>
 
-          <!-- Rank Field (Locked CC) -->
-          <div>
-            <label class="block text-xs font-bold text-gray-700 mb-1">직급 (Rank)</label>
-            <input type="text" value="CC (Cabin Crew 통일)" disabled 
-                   class="w-full px-3 py-2 bg-gray-100 border border-gray-200 rounded-xl text-xs font-bold text-gray-600 cursor-not-allowed">
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1">항공기 기종 (Aircraft)</label>
+              <input type="text" value="B787 (고정)" disabled 
+                     class="w-full px-3 py-2 bg-gray-100 border border-gray-200 rounded-xl text-xs font-bold text-brand-red cursor-not-allowed">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1">작성자 사번</label>
+              <input type="text" id="staff-id" disabled
+                     class="w-full px-3 py-2 bg-gray-100 border border-gray-200 rounded-xl text-xs font-bold text-gray-600 cursor-not-allowed">
+            </div>
           </div>
 
-          <!-- Section: Give Away (양도할 항목) -->
+          <!-- 1. GIVE AWAY SECTION -->
           <div class="p-3 bg-red-50/50 border border-red-100 rounded-xl space-y-2">
             <span class="text-xs font-extrabold text-brand-red uppercase tracking-wider block">1. Give Away (양도 항목)</span>
-            
-            <div id="give-flight-container" class="grid grid-cols-2 gap-2">
+            <div class="grid grid-cols-2 gap-2">
               <div>
                 <label class="block text-[11px] font-semibold text-gray-600 mb-1">편명/구분</label>
-                <input type="text" id="give-code" placeholder="예: VS209" value="VS209" required
-                       class="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-brand-red">
+                <input type="text" id="give-code" value="VS209" required class="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs">
               </div>
               <div>
-                <label class="block text-[11px] font-semibold text-gray-600 mb-1" id="give-route-label">구간 / 내용</label>
-                <input type="text" id="give-route" placeholder="예: ICN-LHR" value="ICN-LHR" required
-                       class="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-brand-red">
+                <label class="block text-[11px] font-semibold text-gray-600 mb-1">구간/내용</label>
+                <input type="text" id="give-route" value="ICN-LHR" required class="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs">
               </div>
             </div>
 
-            <div>
-              <label class="block text-[11px] font-semibold text-gray-600 mb-1" id="give-date-label">날짜</label>
-              <input type="text" id="give-date" placeholder="예: 2026.10.12" value="2026.10.12" required
-                     class="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-brand-red">
+            <div class="grid grid-cols-2 gap-2 pt-1">
+              <div>
+                <label class="block text-[11px] font-semibold text-gray-600 mb-1 flex items-center gap-1">
+                  <i data-lucide="plane-takeoff" class="w-3 h-3 text-brand-red"></i> 출발일
+                </label>
+                <input type="date" id="give-start-date" value="2026-10-12" required class="w-full px-2.5 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-medium focus:ring-1 focus:ring-brand-red">
+              </div>
+              <div id="end-date-container">
+                <label class="block text-[11px] font-semibold text-gray-600 mb-1 flex items-center gap-1">
+                  <i data-lucide="plane-landing" class="w-3 h-3 text-emerald-600"></i> 도착일
+                </label>
+                <input type="date" id="give-end-date" value="2026-10-14" required class="w-full px-2.5 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-medium focus:ring-1 focus:ring-brand-red">
+              </div>
             </div>
           </div>
 
-          <!-- Section: Take / Request (희망 스왑) -->
+          <!-- 2. WANT / REQUEST SECTION -->
           <div class="p-3 bg-emerald-50/50 border border-emerald-100 rounded-xl space-y-2">
             <span class="text-xs font-extrabold text-emerald-700 uppercase tracking-wider block">2. Want / Request (희망 스왑)</span>
-            
             <div class="grid grid-cols-2 gap-2">
               <div>
                 <label class="block text-[11px] font-semibold text-gray-600 mb-1">희망 유형</label>
-                <select id="want-type" class="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-emerald-600">
+                <select id="want-type" class="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs">
                   <option value="DAYS OFF">DAYS OFF (휴무)</option>
                   <option value="VS209 Duty">VS209 (비행)</option>
                   <option value="ANY DUTY">무관 (Any Duty)</option>
@@ -450,184 +427,223 @@
               </div>
               <div>
                 <label class="block text-[11px] font-semibold text-gray-600 mb-1">희망 날짜</label>
-                <input type="text" id="want-date" placeholder="예: 10/18 ~ 10/20" value="10/18 이후 OFF" required
-                       class="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-emerald-600">
+                <input type="text" id="want-date" value="10/18 이후 OFF" required class="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs">
               </div>
             </div>
           </div>
 
-          <!-- Note / Description -->
-          <div>
-            <label class="block text-xs font-bold text-gray-700 mb-1">추가 메모</label>
-            <textarea id="post-note" rows="2" placeholder="요청 사항이나 기타 조건이 있다면 작성해 주세요."
-                      class="w-full p-2.5 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-red/20 focus:border-brand-red"></textarea>
-          </div>
-
           <button type="submit" class="w-full py-3 bg-brand-red hover:bg-brand-darkRed text-white font-extrabold text-xs rounded-xl shadow-md transition-all">
-            스왑 요청 등록 완료
+            등록 후 카톡 문구 복사하기
           </button>
         </form>
 
       </div>
     </div>
 
-
-    <!-- ==================== REALTIME CHAT DETAIL MODAL ==================== -->
-    <div id="chat-modal" class="fixed inset-0 z-50 bg-white hidden flex flex-col max-w-md mx-auto">
-      <!-- Chat Header -->
-      <div class="p-3.5 border-b border-gray-200 flex items-center justify-between bg-white sticky top-0 z-10">
-        <div class="flex items-center gap-2.5">
-          <button onclick="closeChatModal()" class="text-gray-600 hover:text-gray-900 p-1">
-            <i data-lucide="arrow-left" class="w-5 h-5"></i>
+    <!-- ==================== CHAT DETAIL MODAL ==================== -->
+    <div id="chat-modal" class="fixed inset-0 z-50 modal-backdrop hidden flex items-center justify-center p-4">
+      <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden flex flex-col h-[450px] animate-slide-up">
+        <div class="px-4 py-3 bg-brand-red text-white flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <i data-lucide="message-square" class="w-4 h-4"></i>
+            <span id="chat-title" class="font-bold text-xs">승무원 대화</span>
+          </div>
+          <button onclick="closeChatModal()" class="text-white/80 hover:text-white p-1">
+            <i data-lucide="x" class="w-4 h-4"></i>
           </button>
-          <div>
-            <h3 id="chat-partner-name" class="font-extrabold text-sm text-gray-900 leading-tight">김민지 승무원 (CC)</h3>
-            <p id="chat-partner-subtitle" class="text-[10px] text-gray-500">온라인 | VS209 Swap Negotiation</p>
-          </div>
-        </div>
-        <button class="text-xs font-bold text-brand-red bg-red-50 px-2.5 py-1 rounded-lg border border-red-100">
-          스왑 확정하기
-        </button>
-      </div>
-
-      <!-- Chat Messages Container -->
-      <div id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-3 bg-gray-50 text-xs">
-        <div class="text-center my-2">
-          <span class="bg-gray-200 text-gray-600 text-[10px] px-2.5 py-1 rounded-full font-medium">안전한 스왑을 위해 비행 일정을 다시 한번 확인하세요.</span>
         </div>
 
-        <!-- Message Left -->
-        <div class="flex gap-2 items-end">
-          <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=120" class="w-7 h-7 rounded-full object-cover">
-          <div class="bg-white border border-gray-200 p-3 rounded-2xl rounded-bl-none max-w-[75%] shadow-2xs">
-            <p class="text-gray-800">안녕하세요! 올리신 10/15 DAYS OFF 스왑 글 보고 메시지 남깁니다.</p>
-            <span class="text-[9px] text-gray-400 block mt-1">오후 2:32</span>
-          </div>
+        <div id="chat-messages" class="flex-1 p-3 overflow-y-auto space-y-2 bg-gray-50 text-xs">
+          <!-- Populated dynamically -->
         </div>
 
-        <!-- Message Right -->
-        <div class="flex gap-2 items-end justify-end">
-          <div class="bg-brand-red text-white p-3 rounded-2xl rounded-br-none max-w-[75%] shadow-2xs">
-            <p>네 안녕하세요! 10/15 DAYS OFF 양도 가능합니다. 혹시 제안해 주실 듀티가 어떻게 되시나요?</p>
-            <span class="text-[9px] text-white/70 block mt-1 text-right">오후 2:34</span>
-          </div>
+        <div class="p-2 border-t border-gray-200 bg-white flex items-center gap-2">
+          <input type="text" id="chat-input" placeholder="메시지를 입력하세요..." class="flex-1 bg-gray-100 px-3 py-2 rounded-xl text-xs border border-gray-200 focus:outline-none focus:border-brand-red">
+          <button onclick="sendChatMessage()" class="bg-brand-red text-white p-2 rounded-xl hover:bg-brand-darkRed transition-colors">
+            <i data-lucide="send" class="w-4 h-4"></i>
+          </button>
         </div>
-      </div>
-
-      <!-- Chat Input Area -->
-      <div class="p-3 border-t border-gray-200 bg-white flex items-center gap-2">
-        <input type="text" id="chat-input" placeholder="메시지를 입력하세요..." 
-               onkeydown="if(event.key==='Enter') sendChatMessage()"
-               class="flex-1 bg-gray-100 border-0 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-brand-red/30">
-        <button onclick="sendChatMessage()" class="bg-brand-red text-white p-2.5 rounded-xl hover:bg-brand-darkRed transition-colors">
-          <i data-lucide="send" class="w-4 h-4"></i>
-        </button>
       </div>
     </div>
 
-
-    <!-- ==================== BOTTOM NAVIGATION BAR ==================== -->
-    <nav class="sticky bottom-0 z-30 bg-white border-t border-gray-200 px-4 py-2 flex justify-around items-center text-gray-400">
-      <button onclick="switchTab('feed')" id="nav-feed" class="flex flex-col items-center gap-0.5 tab-active transition-all">
+    <!-- ==================== BOTTOM NAV ==================== -->
+    <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-gray-200 z-40 px-6 py-2 flex items-center justify-around shadow-lg">
+      <button onclick="switchTab('feed')" id="nav-feed" class="flex flex-col items-center gap-0.5 text-brand-red transition-all">
         <i data-lucide="arrow-left-right" class="w-5 h-5"></i>
-        <span class="text-[10px] font-bold">스왑 피드</span>
+        <span class="text-[10px] font-bold">스왑피드</span>
       </button>
 
-      <button onclick="switchTab('schedule')" id="nav-schedule" class="flex flex-col items-center gap-0.5 hover:text-brand-red transition-all">
+      <button onclick="switchTab('schedule')" id="nav-schedule" class="flex flex-col items-center gap-0.5 text-gray-400 hover:text-brand-red transition-all">
         <i data-lucide="calendar" class="w-5 h-5"></i>
         <span class="text-[10px] font-bold">내 스케줄</span>
       </button>
 
-      <button onclick="switchTab('chat')" id="nav-chat" class="flex flex-col items-center gap-0.5 hover:text-brand-red transition-all relative">
+      <button onclick="switchTab('chat')" id="nav-chat" class="flex flex-col items-center gap-0.5 text-gray-400 hover:text-brand-red transition-all">
         <i data-lucide="message-square" class="w-5 h-5"></i>
         <span class="text-[10px] font-bold">채팅</span>
-        <span class="absolute top-0 right-2 w-2 h-2 bg-brand-red rounded-full"></span>
       </button>
 
-      <button onclick="switchTab('profile')" id="nav-profile" class="flex flex-col items-center gap-0.5 hover:text-brand-red transition-all">
+      <button onclick="switchTab('profile')" id="nav-profile" class="flex flex-col items-center gap-0.5 text-gray-400 hover:text-brand-red transition-all">
         <i data-lucide="user" class="w-5 h-5"></i>
-        <span class="text-[10px] font-bold">마이페이지</span>
+        <span class="text-[10px] font-bold">프로필</span>
       </button>
     </nav>
 
   </div>
 
-
-  <!-- ==================== SCRIPT & LOGIC ==================== -->
+  <!-- ==================== JAVASCRIPT LOGIC ==================== -->
   <script>
-    // Initial State & Mock Data
-    let currentCategory = 'ALL';
-    let postsData = [
+    const ECrew_LINK = "https://vs-crew.aims.aero/eCrew/Dashboard";
+    const AIRCRAFT_MODEL = "B787";
+
+    // Currently logged-in user object
+    let currentUser = null;
+
+    let posts = [
       {
         id: 1,
-        author: '김민지',
+        author: '이지원',
         rank: 'CC',
-        avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=120',
-        category: 'DAYS OFF',
-        giveCode: 'DAYS OFF',
-        giveRoute: 'DAYS OFF (2026.10.15)',
-        giveDate: '2026.10.15',
-        wantType: 'VS209 Duty',
-        wantDate: '10/18 ~ 10/22',
-        note: '10월 15일 DAYS OFF 양도합니다. VS209 비행 듀티와 스왑 원해요!'
+        staffId: '123456',
+        aircraft: 'B787',
+        category: 'DUTY',
+        giveCode: 'VS209',
+        giveRoute: 'ICN-LHR',
+        startDate: '2026.10.12',
+        endDate: '2026.10.14',
+        wantType: 'DAYS OFF',
+        wantDate: '10/18 이후 OFF'
       },
       {
         id: 2,
-        author: 'Sarah Jenkins',
+        author: '김민지',
         rank: 'CC',
-        avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=120',
-        category: 'DUTY',
-        giveCode: 'VS209',
-        giveRoute: 'ICN ✈ LHR (VS209)',
-        giveDate: '2026.10.12',
-        wantType: 'DAYS OFF',
-        wantDate: '10/12 OFF 희망',
-        note: 'Looking for DAYS OFF on Oct 12 due to personal appointment.'
+        staffId: '654321',
+        aircraft: 'B787',
+        category: 'DAYS OFF',
+        giveCode: 'DAYS OFF',
+        giveRoute: '서울/인천 지정 휴무',
+        startDate: '2026.10.15',
+        endDate: '2026.10.15',
+        wantType: 'VS209 Duty',
+        wantDate: '10/20 ~ 10/25 사이'
       },
       {
         id: 3,
-        author: '박준호',
+        author: '박준서',
         rank: 'CC',
-        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=120',
+        staffId: '987654',
+        aircraft: 'B787',
         category: 'SBY',
-        giveCode: 'SBY',
-        giveRoute: 'Airport Standby (ICN)',
-        giveDate: '2026.10.18',
-        wantType: 'DAYS OFF',
-        wantDate: '10/18 DAYS OFF',
-        note: '10월 18일 SBY 스왑해 주실 분 구합니다.'
+        giveCode: 'SBY-ICN',
+        giveRoute: 'Incheon Standby',
+        startDate: '2026.10.22',
+        endDate: '2026.10.22',
+        wantType: 'ANY DUTY',
+        wantDate: '10월 하순 아무 비행'
       }
     ];
 
-    // Initialize Page
+    let currentCategoryFilter = 'ALL';
+
     document.addEventListener('DOMContentLoaded', () => {
       lucide.createIcons();
-      renderFeedPosts();
+      checkAuthStatus();
+      renderPosts();
     });
 
-    // Render Feed Posts dynamically
-    function renderFeedPosts() {
-      const container = document.getElementById('posts-container');
-      const counter = document.getElementById('post-count');
-      const searchVal = document.getElementById('feed-search').value.toLowerCase();
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toast-message');
+      toastMsg.innerText = message || '카카오톡 연동 메세지가 클립보드에 복사되었습니다.';
+      
+      toast.classList.remove('hidden');
+      setTimeout(() => {
+        toast.classList.remove('-translate-y-2', 'opacity-0');
+        toast.classList.add('translate-y-0', 'opacity-100');
+      }, 10);
 
-      // Filter Posts
-      const filtered = postsData.filter(post => {
-        const matchesCat = currentCategory === 'ALL' || post.category === currentCategory;
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('-translate-y-2', 'opacity-0');
+        setTimeout(() => {
+          toast.classList.add('hidden');
+        }, 300);
+      }, 2500);
+    }
+
+    // 1. Check Authentication Status via LocalStorage
+    function checkAuthStatus() {
+      const savedUser = localStorage.getItem('crewswap_user');
+      if (savedUser) {
+        currentUser = JSON.parse(savedUser);
+        document.getElementById('login-modal').classList.add('hidden');
+        updateUIWithUser();
+      } else {
+        document.getElementById('login-modal').classList.remove('hidden');
+      }
+    }
+
+    // 2. Handle Login Submission
+    function handleLoginSubmit(e) {
+      e.preventDefault();
+      const name = document.getElementById('login-name').value.trim();
+      const staffId = document.getElementById('login-staff-id').value.trim();
+
+      if (staffId.length !== 6 || isNaN(staffId)) {
+        showToast('사번은 6자리 숫자로 입력해주세요.');
+        return;
+      }
+
+      currentUser = {
+        name: name || '이지원',
+        staffId: staffId,
+        rank: 'CC',
+        aircraft: AIRCRAFT_MODEL
+      };
+
+      localStorage.setItem('crewswap_user', JSON.stringify(currentUser));
+      document.getElementById('login-modal').classList.add('hidden');
+      updateUIWithUser();
+    }
+
+    // 3. Reflect User Details in UI
+    function updateUIWithUser() {
+      if (!currentUser) return;
+      document.getElementById('profile-name-display').innerText = `${currentUser.name} 승무원`;
+      document.getElementById('profile-info-display').innerText = `Virgin Atlantic Airways • Cabin Crew (${currentUser.aircraft})`;
+      document.getElementById('profile-staffid-display').innerText = `사번: ${currentUser.staffId}`;
+      document.getElementById('staff-id').value = currentUser.staffId;
+    }
+
+    // 4. Handle Logout
+    function handleLogout() {
+      localStorage.removeItem('crewswap_user');
+      currentUser = null;
+      document.getElementById('login-modal').classList.remove('hidden');
+    }
+
+    // 5. Render Feed Posts
+    function renderPosts() {
+      const container = document.getElementById('posts-container');
+      const searchVal = document.getElementById('feed-search').value.toLowerCase().trim();
+
+      const filtered = posts.filter(post => {
+        const matchesCategory = currentCategoryFilter === 'ALL' || post.category === currentCategoryFilter;
         const matchesSearch = post.giveCode.toLowerCase().includes(searchVal) ||
                               post.giveRoute.toLowerCase().includes(searchVal) ||
-                              post.author.toLowerCase().includes(searchVal) ||
-                              post.giveDate.toLowerCase().includes(searchVal);
-        return matchesCat && matchesSearch;
+                              post.startDate.toLowerCase().includes(searchVal) ||
+                              post.endDate.toLowerCase().includes(searchVal);
+        return matchesCategory && matchesSearch;
       });
 
-      counter.innerText = filtered.length;
+      document.getElementById('post-count').innerText = filtered.length;
 
       if (filtered.length === 0) {
         container.innerHTML = `
-          <div class="text-center py-10 bg-white rounded-2xl border border-dashed border-gray-200">
-            <i data-lucide="inbox" class="w-10 h-10 text-gray-300 mx-auto mb-2"></i>
-            <p class="text-xs font-bold text-gray-500">해당 조건의 스왑 게시물이 없습니다.</p>
+          <div class="text-center py-8 text-gray-400 bg-white border border-gray-200 rounded-2xl">
+            <i data-lucide="inbox" class="w-8 h-8 mx-auto mb-2 opacity-50"></i>
+            <p class="text-xs">조건에 해당하는 스왑 요청이 없습니다.</p>
           </div>
         `;
         lucide.createIcons();
@@ -635,60 +651,48 @@
       }
 
       container.innerHTML = filtered.map(post => {
-        const isOff = post.category === 'DAYS OFF';
-        const badgeBg = isOff ? 'bg-emerald-100 text-emerald-800' : 
-                        post.category === 'SBY' ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-brand-red';
+        let categoryBadge = '';
+        if (post.category === 'DAYS OFF') {
+          categoryBadge = `<span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-md">DAYS OFF</span>`;
+        } else if (post.category === 'SBY') {
+          categoryBadge = `<span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-md">SBY (대기)</span>`;
+        } else {
+          categoryBadge = `<span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-md">DUTY (비행)</span>`;
+        }
+
+        let dateDisplay = (post.startDate === post.endDate || !post.endDate) 
+          ? post.startDate 
+          : `${post.startDate} ➔ ${post.endDate}`;
 
         return `
           <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-2xs hover:shadow-md transition-all space-y-3">
-            
-            <!-- Card Header -->
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2.5">
-                <img src="${post.avatar}" class="w-9 h-9 rounded-full object-cover border border-gray-100">
-                <div>
-                  <h3 class="text-xs font-extrabold text-gray-900 flex items-center gap-1">
-                    ${post.author} 
-                    <span class="bg-gray-100 text-gray-600 text-[10px] px-1.5 py-0.2 rounded font-bold">Rank: CC</span>
-                  </h3>
-                  <p class="text-[10px] text-gray-400">Virgin Atlantic Crew</p>
-                </div>
+            <div class="flex items-center justify-between border-b border-gray-100 pb-2.5">
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-gray-900">${post.author}</span>
+                <span class="text-[10px] font-semibold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">${post.rank} • B787 (사번: ${post.staffId})</span>
               </div>
-              <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase ${badgeBg}">
-                ${post.category}
-              </span>
+              ${categoryBadge}
             </div>
 
-            <!-- Swap Content Comparison Grid -->
-            <div class="grid grid-cols-2 gap-2 text-xs bg-gray-50/80 p-2.5 rounded-xl border border-gray-100">
-              <!-- Give Away Side -->
-              <div class="border-r border-gray-200 pr-2">
-                <span class="text-[10px] font-extrabold text-brand-red block mb-0.5">GIVE AWAY (양도)</span>
-                <p class="font-extrabold text-gray-900">${isOff ? 'DAYS OFF' : post.giveCode}</p>
-                <p class="text-[11px] text-gray-600 truncate">${post.giveRoute}</p>
-                <p class="text-[10px] text-gray-400 mt-1">일자: ${post.giveDate}</p>
+            <div class="grid grid-cols-2 gap-2 bg-gray-50 p-3 rounded-xl border border-gray-100 text-xs">
+              <div class="space-y-0.5 border-r border-gray-200 pr-2">
+                <span class="text-[10px] font-extrabold text-brand-red uppercase tracking-wide block">GIVE (양도)</span>
+                <p class="font-extrabold text-gray-900 truncate">${post.giveCode} (${post.giveRoute})</p>
+                <p class="text-[11px] text-gray-600 font-medium">${dateDisplay}</p>
               </div>
 
-              <!-- Want Side -->
-              <div class="pl-1">
-                <span class="text-[10px] font-extrabold text-emerald-600 block mb-0.5">WANT (희망)</span>
-                <p class="font-extrabold text-gray-900">${post.wantType}</p>
-                <p class="text-[11px] text-gray-600 truncate">${post.wantDate}</p>
-                <p class="text-[10px] text-gray-400 mt-1">상호 협의 가능</p>
+              <div class="space-y-0.5 pl-1">
+                <span class="text-[10px] font-extrabold text-emerald-600 uppercase tracking-wide block">WANT (희망)</span>
+                <p class="font-extrabold text-gray-900 truncate">${post.wantType}</p>
+                <p class="text-[11px] text-gray-500 truncate">${post.wantDate}</p>
               </div>
             </div>
 
-            ${post.note ? `<p class="text-xs text-gray-600 bg-white p-2 rounded-lg border border-gray-100 italic">"${post.note}"</p>` : ''}
-
-            <!-- Card Actions -->
-            <div class="flex items-center justify-between pt-1">
-              <span class="text-[10px] text-gray-400">직급 CC 전용 스왑</span>
-              <button onclick="requestSwap('${post.author}', '${post.giveCode}')" 
-                      class="bg-brand-red hover:bg-brand-darkRed text-white text-xs font-bold px-3.5 py-1.5 rounded-lg transition-colors flex items-center gap-1 shadow-2xs">
-                <i data-lucide="message-square" class="w-3.5 h-3.5"></i> 스왑 채팅 문의
-              </button>
-            </div>
-
+            <button onclick="copyAndOpenKakao('${post.giveCode}', '${post.giveRoute}', '${post.startDate}', '${post.endDate}', '${post.wantType}', '${post.staffId}')" 
+                    class="w-full bg-yellow-400 hover:bg-yellow-500 active:bg-yellow-600 text-amber-950 text-xs font-extrabold py-2.5 rounded-xl shadow-xs transition-colors flex items-center justify-center gap-1.5">
+              <i data-lucide="message-circle" class="w-4 h-4 fill-amber-950"></i>
+              스왑 요청하기 (문구 자동복사)
+            </button>
           </div>
         `;
       }).join('');
@@ -696,25 +700,82 @@
       lucide.createIcons();
     }
 
-    // Category Filter Switch
+    function copyAndOpenKakao(code, route, startDate, endDate, want, staffId) {
+      let dateText = (startDate === endDate || !endDate) 
+        ? startDate 
+        : `${startDate} 출발 ~ ${endDate} 도착`;
+
+      // 로그인된 사용자의 사번을 최우선으로 적용 (직접 지정된 staffId가 있으면 해당 값 사용)
+      const activeStaffId = currentUser ? currentUser.staffId : (staffId || '123456');
+
+      const simpleText = 
+`[VS 스왑 요청] B787 / CC
+• 양도: ${code} (${route})
+• 일정: ${dateText}
+• 희망: ${want}
+• 사번: ${activeStaffId}
+
+스왑 가능하신 분은 연락 부탁드립니다!
+
+------------------
+eCrew 변경 시스템:
+${ECrew_LINK}`;
+
+      fallbackCopyText(simpleText);
+    }
+
+    function fallbackCopyText(text) {
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand("copy");
+        showToast('카카오톡 연동 메세지가 클립보드에 복사되었습니다.');
+      } catch (err) {
+        console.error("Copy failed", err);
+        showToast('복사에 실패했습니다. 다시 시도해 주세요.');
+      }
+      document.body.removeChild(textarea);
+    }
+
+    // 7. Category Filter Switching
     function setCategoryFilter(category) {
-      currentCategory = category;
+      currentCategoryFilter = category;
       document.querySelectorAll('.category-chip').forEach(btn => {
         if (btn.dataset.category === category) {
-          btn.className = 'category-chip active-chip px-3 py-1.5 rounded-full text-xs font-semibold bg-brand-red text-white transition-all shadow-xs';
+          btn.className = "category-chip active-chip px-3 py-1.5 rounded-full text-xs font-semibold bg-brand-red text-white transition-all shadow-xs";
         } else {
-          btn.className = 'category-chip px-3 py-1.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 hover:bg-gray-200 transition-all';
+          btn.className = "category-chip px-3 py-1.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 hover:bg-gray-200 transition-all";
         }
       });
-      renderFeedPosts();
+      renderPosts();
     }
 
-    function filterFeedPosts() {
-      renderFeedPosts();
+    // 8. Navigation Tab Switching
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-page').forEach(page => page.classList.add('hidden'));
+      document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+
+      const navIds = ['feed', 'schedule', 'profile'];
+      navIds.forEach(id => {
+        const btn = document.getElementById(`nav-${id}`);
+        if (id === tabId) {
+          btn.className = "flex flex-col items-center gap-0.5 text-brand-red transition-all";
+        } else {
+          btn.className = "flex flex-col items-center gap-0.5 text-gray-400 hover:text-brand-red transition-all";
+        }
+      });
     }
 
-    // Modal Control Logic
+    // 9. Post Creation Modal Controllers
     function openPostModal() {
+      if (!currentUser) {
+        document.getElementById('login-modal').classList.remove('hidden');
+        return;
+      }
       document.getElementById('post-modal').classList.remove('hidden');
     }
 
@@ -722,135 +783,380 @@
       document.getElementById('post-modal').classList.add('hidden');
     }
 
-    // Dynamic Form Field Labels for DAYS OFF
-    function toggleFormFields(category) {
-      const routeLabel = document.getElementById('give-route-label');
-      const routeInput = document.getElementById('give-route');
-      const codeInput = document.getElementById('give-code');
-
-      if (category === 'DAYS OFF') {
-        routeLabel.innerText = 'OFF 지정 정보';
-        routeInput.value = 'DAYS OFF (인천/서울)';
-        codeInput.value = 'DAYS OFF';
-      } else if (category === 'SBY') {
-        routeLabel.innerText = '대기 장소 / 시간';
-        routeInput.value = 'Airport Standby (ICN)';
-        codeInput.value = 'SBY';
-      } else {
-        routeLabel.innerText = '구간 / 내용';
-        routeInput.value = 'ICN-LHR';
-        codeInput.value = 'VS209';
-      }
-    }
-
-    // Quick Post from Schedule Tab
-    function quickPostSwap(code, route, date, category) {
-      switchTab('feed');
-      openPostModal();
-      
-      document.getElementById('give-code').value = code;
-      document.getElementById('give-route').value = route;
-      document.getElementById('give-date').value = date;
-
-      // Select matching radio
-      const radios = document.getElementsByName('postCategory');
-      radios.forEach(r => {
-        if (r.value === category) r.checked = true;
-      });
-      toggleFormFields(category);
-    }
-
-    // Handle Form Submit
     function handlePostSubmit(e) {
       e.preventDefault();
-
       const category = document.querySelector('input[name="postCategory"]:checked').value;
-      const giveCode = document.getElementById('give-code').value;
-      const giveRoute = document.getElementById('give-route').value;
-      const giveDate = document.getElementById('give-date').value;
+      const giveCode = document.getElementById('give-code').value.trim();
+      const giveRoute = document.getElementById('give-route').value.trim();
+      const startDate = document.getElementById('give-start-date').value.replaceAll('-', '.');
+      const endDate = document.getElementById('give-end-date').value.replaceAll('-', '.');
       const wantType = document.getElementById('want-type').value;
-      const wantDate = document.getElementById('want-date').value;
-      const note = document.getElementById('post-note').value;
+      const wantDate = document.getElementById('want-date').value.trim();
 
       const newPost = {
         id: Date.now(),
-        author: '이지원 (나)',
+        author: currentUser ? currentUser.name : '승무원',
         rank: 'CC',
-        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
+        staffId: currentUser ? currentUser.staffId : '123456',
+        aircraft: AIRCRAFT_MODEL,
         category: category,
         giveCode: giveCode,
         giveRoute: giveRoute,
-        giveDate: giveDate,
+        startDate: startDate,
+        endDate: endDate,
         wantType: wantType,
-        wantDate: wantDate,
-        note: note
+        wantDate: wantDate
       };
 
-      postsData.unshift(newPost);
+      posts.unshift(newPost);
       closePostModal();
-      renderFeedPosts();
-      alert('스왑 게시물이 성공적으로 등록되었습니다!');
+      renderPosts();
+
+      copyAndOpenKakao(giveCode, giveRoute, startDate, endDate, wantType, newPost.staffId);
     }
 
-    // Chat Details Modal
-    function openChatDetail(partnerName, partnerSubtitle) {
-      document.getElementById('chat-partner-name').innerText = partnerName;
-      document.getElementById('chat-partner-subtitle').innerText = partnerSubtitle;
-      document.getElementById('chat-modal').classList.remove('hidden');
+    function triggerNotificationAlert() {
+      showToast('새로운 스왑 알림이 없습니다.');
+    }
+  </script>
+</body>
+</html>채팅</span>
+      </button>
+
+      <button onclick="switchTab('profile')" id="nav-profile" class="flex flex-col items-center gap-0.5 text-gray-400 hover:text-brand-red transition-all">
+        <i data-lucide="user" class="w-5 h-5"></i>
+        <span class="text-[10px] font-bold">프로필</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <!-- ==================== JAVASCRIPT LOGIC ==================== -->
+  <script>
+    const ECrew_LINK = "https://vs-crew.aims.aero/eCrew/Dashboard";
+    const AIRCRAFT_MODEL = "B787";
+
+    // Currently logged-in user object
+    let currentUser = null;
+
+    let posts = [
+      {
+        id: 1,
+        author: '이지원',
+        rank: 'CC',
+        staffId: '123456',
+        aircraft: 'B787',
+        category: 'DUTY',
+        giveCode: 'VS209',
+        giveRoute: 'ICN-LHR',
+        startDate: '2026.10.12',
+        endDate: '2026.10.14',
+        wantType: 'DAYS OFF',
+        wantDate: '10/18 이후 OFF'
+      },
+      {
+        id: 2,
+        author: '김민지',
+        rank: 'CC',
+        staffId: '654321',
+        aircraft: 'B787',
+        category: 'DAYS OFF',
+        giveCode: 'DAYS OFF',
+        giveRoute: '서울/인천 지정 휴무',
+        startDate: '2026.10.15',
+        endDate: '2026.10.15',
+        wantType: 'VS209 Duty',
+        wantDate: '10/20 ~ 10/25 사이'
+      },
+      {
+        id: 3,
+        author: '박준서',
+        rank: 'CC',
+        staffId: '987654',
+        aircraft: 'B787',
+        category: 'SBY',
+        giveCode: 'SBY-ICN',
+        giveRoute: 'Incheon Standby',
+        startDate: '2026.10.22',
+        endDate: '2026.10.22',
+        wantType: 'ANY DUTY',
+        wantDate: '10월 하순 아무 비행'
+      }
+    ];
+
+    let currentCategoryFilter = 'ALL';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      checkAuthStatus();
+      renderPosts();
+    });
+
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toast-message');
+      toastMsg.innerText = message || '카카오톡 연동 메세지가 클립보드에 복사되었습니다.';
+      
+      toast.classList.remove('hidden');
+      setTimeout(() => {
+        toast.classList.remove('-translate-y-2', 'opacity-0');
+        toast.classList.add('translate-y-0', 'opacity-100');
+      }, 10);
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('-translate-y-2', 'opacity-0');
+        setTimeout(() => {
+          toast.classList.add('hidden');
+        }, 300);
+      }, 2500);
     }
 
-    function closeChatModal() {
-      document.getElementById('chat-modal').classList.add('hidden');
+    // 1. Check Authentication Status via LocalStorage
+    function checkAuthStatus() {
+      const savedUser = localStorage.getItem('crewswap_user');
+      if (savedUser) {
+        currentUser = JSON.parse(savedUser);
+        document.getElementById('login-modal').classList.add('hidden');
+        updateUIWithUser();
+      } else {
+        document.getElementById('login-modal').classList.remove('hidden');
+      }
     }
 
-    function requestSwap(author, code) {
-      openChatDetail(`${author} 승무원 (CC)`, `${code} 스왑 문의 대화`);
+    // 2. Handle Login Submission
+    function handleLoginSubmit(e) {
+      e.preventDefault();
+      const name = document.getElementById('login-name').value.trim();
+      const staffId = document.getElementById('login-staff-id').value.trim();
+
+      if (staffId.length !== 6 || isNaN(staffId)) {
+        showToast('사번은 6자리 숫자로 입력해주세요.');
+        return;
+      }
+
+      currentUser = {
+        name: name || '이지원',
+        staffId: staffId,
+        rank: 'CC',
+        aircraft: AIRCRAFT_MODEL
+      };
+
+      localStorage.setItem('crewswap_user', JSON.stringify(currentUser));
+      document.getElementById('login-modal').classList.add('hidden');
+      updateUIWithUser();
     }
 
-    function sendChatMessage() {
-      const input = document.getElementById('chat-input');
-      const text = input.value.trim();
-      if (!text) return;
-
-      const messagesContainer = document.getElementById('chat-messages');
-      const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-      const newMsgHtml = `
-        <div class="flex gap-2 items-end justify-end">
-          <div class="bg-brand-red text-white p-3 rounded-2xl rounded-br-none max-w-[75%] shadow-2xs">
-            <p>${text}</p>
-            <span class="text-[9px] text-white/70 block mt-1 text-right">${timeStr}</span>
-          </div>
-        </div>
-      `;
-
-      messagesContainer.insertAdjacentHTML('beforeend', newMsgHtml);
-      input.value = '';
-      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    // 3. Reflect User Details in UI
+    function updateUIWithUser() {
+      if (!currentUser) return;
+      document.getElementById('profile-name-display').innerText = `${currentUser.name} 승무원`;
+      document.getElementById('profile-info-display').innerText = `Virgin Atlantic Airways • Cabin Crew (${currentUser.aircraft})`;
+      document.getElementById('profile-staffid-display').innerText = `사번: ${currentUser.staffId}`;
+      document.getElementById('staff-id').value = currentUser.staffId;
     }
 
-    // Tab Navigation Logic
-    function switchTab(tabName) {
-      document.querySelectorAll('.tab-page').forEach(page => page.classList.add('hidden'));
-      document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+    // 4. Handle Logout
+    function handleLogout() {
+      localStorage.removeItem('crewswap_user');
+      currentUser = null;
+      document.getElementById('login-modal').classList.remove('hidden');
+    }
 
-      // Update Nav Buttons Active State
-      ['feed', 'schedule', 'chat', 'profile'].forEach(tab => {
-        const navBtn = document.getElementById(`nav-${tab}`);
-        if (tab === tabName) {
-          navBtn.classList.add('tab-active');
-          navBtn.classList.remove('text-gray-400');
-        } else {
-          navBtn.classList.remove('tab-active');
-          navBtn.classList.add('text-gray-400');
-        }
+    // 5. Render Feed Posts
+    function renderPosts() {
+      const container = document.getElementById('posts-container');
+      const searchVal = document.getElementById('feed-search').value.toLowerCase().trim();
+
+      const filtered = posts.filter(post => {
+        const matchesCategory = currentCategoryFilter === 'ALL' || post.category === currentCategoryFilter;
+        const matchesSearch = post.giveCode.toLowerCase().includes(searchVal) ||
+                              post.giveRoute.toLowerCase().includes(searchVal) ||
+                              post.startDate.toLowerCase().includes(searchVal) ||
+                              post.endDate.toLowerCase().includes(searchVal);
+        return matchesCategory && matchesSearch;
       });
+
+      document.getElementById('post-count').innerText = filtered.length;
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-8 text-gray-400 bg-white border border-gray-200 rounded-2xl">
+            <i data-lucide="inbox" class="w-8 h-8 mx-auto mb-2 opacity-50"></i>
+            <p class="text-xs">조건에 해당하는 스왑 요청이 없습니다.</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      container.innerHTML = filtered.map(post => {
+        let categoryBadge = '';
+        if (post.category === 'DAYS OFF') {
+          categoryBadge = `<span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-md">DAYS OFF</span>`;
+        } else if (post.category === 'SBY') {
+          categoryBadge = `<span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-md">SBY (대기)</span>`;
+        } else {
+          categoryBadge = `<span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-md">DUTY (비행)</span>`;
+        }
+
+        let dateDisplay = (post.startDate === post.endDate || !post.endDate) 
+          ? post.startDate 
+          : `${post.startDate} ➔ ${post.endDate}`;
+
+        return `
+          <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-2xs hover:shadow-md transition-all space-y-3">
+            <div class="flex items-center justify-between border-b border-gray-100 pb-2.5">
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-gray-900">${post.author}</span>
+                <span class="text-[10px] font-semibold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">${post.rank} • B787 (사번: ${post.staffId})</span>
+              </div>
+              ${categoryBadge}
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 bg-gray-50 p-3 rounded-xl border border-gray-100 text-xs">
+              <div class="space-y-0.5 border-r border-gray-200 pr-2">
+                <span class="text-[10px] font-extrabold text-brand-red uppercase tracking-wide block">GIVE (양도)</span>
+                <p class="font-extrabold text-gray-900 truncate">${post.giveCode} (${post.giveRoute})</p>
+                <p class="text-[11px] text-gray-600 font-medium">${dateDisplay}</p>
+              </div>
+
+              <div class="space-y-0.5 pl-1">
+                <span class="text-[10px] font-extrabold text-emerald-600 uppercase tracking-wide block">WANT (희망)</span>
+                <p class="font-extrabold text-gray-900 truncate">${post.wantType}</p>
+                <p class="text-[11px] text-gray-500 truncate">${post.wantDate}</p>
+              </div>
+            </div>
+
+            <button onclick="copyAndOpenKakao('${post.giveCode}', '${post.giveRoute}', '${post.startDate}', '${post.endDate}', '${post.wantType}', '${post.staffId}')" 
+                    class="w-full bg-yellow-400 hover:bg-yellow-500 active:bg-yellow-600 text-amber-950 text-xs font-extrabold py-2.5 rounded-xl shadow-xs transition-colors flex items-center justify-center gap-1.5">
+              <i data-lucide="message-circle" class="w-4 h-4 fill-amber-950"></i>
+              스왑 요청하기 (문구 자동복사)
+            </button>
+          </div>
+        `;
+      }).join('');
 
       lucide.createIcons();
     }
 
-    function openNotificationModal() {
-      alert('새로운 스왑 요청 알림이 없습니다.');
+    function copyAndOpenKakao(code, route, startDate, endDate, want, staffId) {
+      let dateText = (startDate === endDate || !endDate) 
+        ? startDate 
+        : `${startDate} 출발 ~ ${endDate} 도착`;
+
+      // 로그인된 사용자의 사번을 최우선으로 적용 (직접 지정된 staffId가 있으면 해당 값 사용)
+      const activeStaffId = currentUser ? currentUser.staffId : (staffId || '123456');
+
+      const simpleText = 
+`[VS 스왑 요청] B787 / CC
+• 양도: ${code} (${route})
+• 일정: ${dateText}
+• 희망: ${want}
+• 사번: ${activeStaffId}
+
+스왑 가능하신 분은 연락 부탁드립니다!
+
+------------------
+eCrew 변경 시스템:
+${ECrew_LINK}`;
+
+      fallbackCopyText(simpleText);
+    }
+
+    function fallbackCopyText(text) {
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand("copy");
+        showToast('카카오톡 연동 메세지가 클립보드에 복사되었습니다.');
+      } catch (err) {
+        console.error("Copy failed", err);
+        showToast('복사에 실패했습니다. 다시 시도해 주세요.');
+      }
+      document.body.removeChild(textarea);
+    }
+
+    // 7. Category Filter Switching
+    function setCategoryFilter(category) {
+      currentCategoryFilter = category;
+      document.querySelectorAll('.category-chip').forEach(btn => {
+        if (btn.dataset.category === category) {
+          btn.className = "category-chip active-chip px-3 py-1.5 rounded-full text-xs font-semibold bg-brand-red text-white transition-all shadow-xs";
+        } else {
+          btn.className = "category-chip px-3 py-1.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 hover:bg-gray-200 transition-all";
+        }
+      });
+      renderPosts();
+    }
+
+    // 8. Navigation Tab Switching
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-page').forEach(page => page.classList.add('hidden'));
+      document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+
+      const navIds = ['feed', 'schedule', 'profile'];
+      navIds.forEach(id => {
+        const btn = document.getElementById(`nav-${id}`);
+        if (id === tabId) {
+          btn.className = "flex flex-col items-center gap-0.5 text-brand-red transition-all";
+        } else {
+          btn.className = "flex flex-col items-center gap-0.5 text-gray-400 hover:text-brand-red transition-all";
+        }
+      });
+    }
+
+    // 9. Post Creation Modal Controllers
+    function openPostModal() {
+      if (!currentUser) {
+        document.getElementById('login-modal').classList.remove('hidden');
+        return;
+      }
+      document.getElementById('post-modal').classList.remove('hidden');
+    }
+
+    function closePostModal() {
+      document.getElementById('post-modal').classList.add('hidden');
+    }
+
+    function handlePostSubmit(e) {
+      e.preventDefault();
+      const category = document.querySelector('input[name="postCategory"]:checked').value;
+      const giveCode = document.getElementById('give-code').value.trim();
+      const giveRoute = document.getElementById('give-route').value.trim();
+      const startDate = document.getElementById('give-start-date').value.replaceAll('-', '.');
+      const endDate = document.getElementById('give-end-date').value.replaceAll('-', '.');
+      const wantType = document.getElementById('want-type').value;
+      const wantDate = document.getElementById('want-date').value.trim();
+
+      const newPost = {
+        id: Date.now(),
+        author: currentUser ? currentUser.name : '승무원',
+        rank: 'CC',
+        staffId: currentUser ? currentUser.staffId : '123456',
+        aircraft: AIRCRAFT_MODEL,
+        category: category,
+        giveCode: giveCode,
+        giveRoute: giveRoute,
+        startDate: startDate,
+        endDate: endDate,
+        wantType: wantType,
+        wantDate: wantDate
+      };
+
+      posts.unshift(newPost);
+      closePostModal();
+      renderPosts();
+
+      copyAndOpenKakao(giveCode, giveRoute, startDate, endDate, wantType, newPost.staffId);
+    }
+
+    function triggerNotificationAlert() {
+      showToast('새로운 스왑 알림이 없습니다.');
     }
   </script>
 </body>
